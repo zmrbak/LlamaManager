@@ -144,6 +144,9 @@ BATCH="${BATCH:-1024}"
 MODEL_LAYERS="${MODEL_LAYERS:-auto}"
 CORES="${CORES:-$DEFAULT_CORES}"
 
+# 模型别名（去掉路径和.gguf扩展名）
+MODEL_ALIAS=$(basename "$MODEL" .gguf)
+
 # 展开所有路径
 CUDA_LIB64_EXPANDED=$(expand_path "$CUDA_LIB64")
 LLAMA_MODELS_HOME_EXPANDED=$(expand_path "$LLAMA_MODELS_HOME")
@@ -484,6 +487,7 @@ STATUS
 # ==========================================
 $LLAMA_SERVER_BIN_EXPANDED/llama-server \\
     -m "\$MODEL_FILE" \\
+    --alias "$MODEL_ALIAS" \\
     -ngl \$FINAL_NGL \\
     -c \$FINAL_CONTEXT \\
     -t \$THREADS \\
