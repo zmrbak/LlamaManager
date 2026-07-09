@@ -50,7 +50,7 @@ write_config() {
 # auto 参数（NGL, CONTEXT, BATCH, MODEL_LAYERS）在计算节点自动检测，无需配置
 # 如需强制覆盖，可手动添加:
 #   NGL=99
-#   CONTEXT=4096
+#   CONTEXT=32768
 #   BATCH=1024
 #   MODEL_LAYERS=48
 
@@ -409,12 +409,14 @@ if [ "\$CONTEXT_CONFIG" = "auto" ]; then
     REMAINING_VRAM=\$((GPU_FREE_VRAM - MODEL_ON_GPU_MB - 500))
     echo "模型 GPU 占用估算: \$MODEL_ON_GPU_MB MiB, 剩余: \$REMAINING_VRAM MiB"
 
-    if [ \$REMAINING_VRAM -gt 12000 ]; then
-        FINAL_CONTEXT=8192
-    elif [ \$REMAINING_VRAM -gt 4000 ]; then
-        FINAL_CONTEXT=4096
-    elif [ \$REMAINING_VRAM -gt 1000 ]; then
-        FINAL_CONTEXT=2048
+    # 每token约2bytes(KV cache), ~2 tokens/MiB for Q4, 留2GB安全余量
+    SAFE_VRAM=\$((REMAINING_VRAM - 2000))
+    if [ \$SAFE_VRAM -gt 0 ]; then
+        FINAL_CONTEXT=\$((SAFE_VRAM * 2))
+        # 模型上限保护: Qwen3-Coder-30B-A3B 最大支持 256K (262144)
+        if [ \$FINAL_CONTEXT -gt 262144 ]; then
+            FINAL_CONTEXT=262144
+        fi
     else
         FINAL_CONTEXT=1024
         echo "警告: 剩余 VRAM 极少, context 降至 1024"
