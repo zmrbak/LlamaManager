@@ -487,7 +487,7 @@ STATUS
 # ==========================================
 $LLAMA_SERVER_BIN_EXPANDED/llama-server \\
     -m "\$MODEL_FILE" \\
-    --alias "$MODEL_ALIAS" \\
+    -a "$MODEL_ALIAS" \\
     -ngl \$FINAL_NGL \\
     -c \$FINAL_CONTEXT \\
     -t \$THREADS \\
